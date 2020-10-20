@@ -17,14 +17,37 @@ void set_led(const unsigned long color) {
   analogWrite(RGB_BLUE, color & 0x0000ffUL);
 }
 
+bool ir_detect() {
+  const auto volts = analogRead(IR_SENSOR) * VOLTAGE_SCALING;
+  const auto distance = 13 * (1.0f / volts);
+  if (distance <= DISTANCE_MAX && distance >= DISTANCE_MIN)
+  {
+    return true;
+  }
+  return false;
+}
+
+
 /**
  * Search function
  * 
  * @param dt Delta time between the current tick and the last tick.
  * @return STATE_SEARCH if no transition is needed otherwise STATE_ACTIVE.
  */
-int search(const unsigned long dt) {
-  // TODO: implementation
+int search(const unsigned long dt, unsigned long& acc, int& found) {
+  set_led(0x003300UL);
+  acc += dt;
+  if (acc < IR_FRAMETIME)
+  {
+    return STATE_SEARCH;
+  }
+  acc -= IR_FRAMETIME;
+  found += ir_detect() ? 1 : -1;
+  found = constrain(found, IR_FOUND_MIN, IR_FOUND_MAX);
+  if (found >= IR_FOUND_TARGET)
+  {
+    return STATE_ACTIVE;
+  }
   return STATE_SEARCH;
 }
 
@@ -34,8 +57,16 @@ int search(const unsigned long dt) {
  * @param dt Delta time between the current tick and the last tick.
  * @return STATE_ACTIVE if no transition is needed otherwise STATE_RESET.
  */
-int activate(const unsigned long dt) {
-  // TODO: implementation
+int activate(const unsigned long dt, unsigned long& acc) {
+  acc += dt;
+  if (acc >= MOTOR_TIMEOUT)
+  {
+    digitalWrite(MOTOR, LOW);
+    acc = 0;
+    return STATE_RESET;  
+  }
+  set_led(0x000033UL);
+  digitalWrite(MOTOR, HIGH);
   return STATE_ACTIVE;
 }
 
@@ -45,8 +76,20 @@ int activate(const unsigned long dt) {
  * @param dt Delta time between the current tick and the last tick.
  * @return STATE_RESET if no transition is needed otherwise STATE_SEARCH.
  */
-int reset(const unsigned long dt) {
-  // TODO: implementation
+int reset(const unsigned long dt, unsigned long& acc, int& found) {
+  set_led(0x330000UL);
+  acc += dt;
+  if (acc < IR_FRAMETIME)
+  {
+    return STATE_RESET;
+  }
+  acc -= IR_FRAMETIME;
+  found += ir_detect() ? 1 : -1;
+  found = constrain(found, IR_FOUND_MIN, IR_FOUND_MAX);
+  if (found <= IR_FOUND_MIN)
+  {
+    return STATE_SEARCH;
+  }
   return STATE_RESET;
 }
 
@@ -60,7 +103,7 @@ void setup() {
   pinMode(RGB_RED, OUTPUT);
   pinMode(RGB_GREEN, OUTPUT);
   pinMode(RGB_BLUE, OUTPUT);
-  set_led(0UL);
+  pinMode(MOTOR, OUTPUT);
   // TODO: implementation
 }
 
@@ -70,17 +113,19 @@ void setup() {
  * Runs once per time unit.
  */
 void loop() {
-  static int state = STATE_SEARCH;
-  static unsigned long last = 0;
+  auto state = STATE_SEARCH;
+  unsigned long acc[STATE_COUNT];
+  auto found = 0;
+  auto last = 0UL;
   switch (state) {
   case STATE_SEARCH:
-    state = search(millis() - last);
+    state = search(millis() - last, acc[STATE_SEARCH], found);
     break;
   case STATE_ACTIVE:
-    state = activate(millis() - last);
+    state = activate(millis() - last, acc[STATE_ACTIVE]);
     break;
   case STATE_RESET:
-    state = reset(millis() - last);
+    state = reset(millis() - last, acc[STATE_RESET], found);
     break;
   default:
     break;

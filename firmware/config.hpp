@@ -42,4 +42,6 @@
  */
 #define DISTANCE_MAX 20
 
+#define MOTOR_TIMEOUT 100
+
 #endif

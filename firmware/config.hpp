@@ -42,6 +42,9 @@
  */
 #define DISTANCE_MAX 20
 
-#define MOTOR_TIMEOUT 100
+/**
+ * The duration in milliseconds that the motor should run for.
+ */
+#define MOTOR_TIMEOUT 300
 
 #endif

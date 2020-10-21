@@ -15,7 +15,7 @@ const float VOLTAGE_SCALING = 5.0f / 1023.0f;
 /**
  * State enumeration constants.
  */
-enum {
+enum state {
   STATE_SEARCH = 0,
   STATE_ACTIVE = 1,
   STATE_RESET = 2

@@ -45,7 +45,7 @@ bool ir_detect() {
  * @param found The number of positive IR sensor samples. This value is shared between search and reset.
  * @return STATE_SEARCH if no transition is needed otherwise STATE_ACTIVE.
  */
-int search(const unsigned long dt, int& found) {
+state search(const unsigned long dt, int& found) {
   static auto acc = 0UL;
   
   set_led(0x003300UL);
@@ -76,7 +76,7 @@ int search(const unsigned long dt, int& found) {
  * @param dt Delta time between the current tick and the last tick.
  * @return STATE_ACTIVE if no transition is needed otherwise STATE_RESET.
  */
-int activate(const unsigned long dt) {
+state activate(const unsigned long dt) {
   static auto acc = 0UL;
   
   acc += dt;
@@ -103,7 +103,7 @@ int activate(const unsigned long dt) {
  * @param found The number of positive IR sensor samples. This value is shared between search and reset.
  * @return STATE_RESET if no transition is needed otherwise STATE_SEARCH.
  */
-int reset(const unsigned long dt, int& found) {
+state reset(const unsigned long dt, int& found) {
   static auto acc = 0UL;
   
   set_led(0x330000UL);
@@ -144,20 +144,20 @@ void setup() {
  * Runs once per time unit.
  */
 void loop() {
-  static auto state = STATE_SEARCH;
+  static auto current_state = STATE_SEARCH;
   static auto found = 0;
   static auto last = 0UL;
   static auto dt = 0UL;
   
-  switch (state) {
+  switch (current_state) {
   case STATE_SEARCH:
-    state = search(dt, found);
+    current_state = search(dt, found);
     break;
   case STATE_ACTIVE:
-    state = activate(dt);
+    current_state = activate(dt);
     break;
   case STATE_RESET:
-    state = reset(dt, found);
+    current_state = reset(dt, found);
     break;
   default:
     break;

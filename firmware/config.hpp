@@ -8,14 +8,30 @@
 #define FIRMWARE_CONFIG_HPP
 
 /**
- * IR sensor connection configuration
+ * If you are using a continuous rotation servo rather than a DC motor
+ * defining MOTOR_IS_360_SERVO will cause the program to use the Arduino
+ * Servo library.
  */
- const int IR_SENSOR = A0;
+
+#ifdef MOTOR_IS_360_SERVO
+  /**
+   * The motor speed for a continuous rotation servo.
+   * 180 is max speed and 0 is fully stopped.
+   */
+  const int MOTOR_SPEED = 180
+#else
+
+#endif
 
 /**
  * Motor connection configuration
  */
  const int MOTOR = 10;
+
+/**
+ * IR sensor connection configuration
+ */
+ const int IR_SENSOR = A0;
 
 /**
  * RGB LED red connection configuration

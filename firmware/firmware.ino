@@ -4,6 +4,12 @@
 #include "constants.hpp"
 #include "config.hpp"
 
+#ifdef MOTOR_IS_360_SERVO
+  #include <Servo.h>
+
+  static Servo motor;
+#endif
+
 /**
  * Set the color of the status LED to the specified 24-bit color.
  * 
@@ -82,13 +88,21 @@ state activate(const unsigned long dt) {
   acc += dt;
   if (acc >= MOTOR_TIMEOUT)
   {
+#ifndef MOTOR_IS_360_SERVO
     digitalWrite(MOTOR, LOW);
+#else
+    motor.write(0);
+#endif
     acc = 0;
     Serial.println("Reset");
     return STATE_RESET;  
   }
   set_led(0x000033UL);
+#ifndef MOTOR_IS_360_SERVO
   digitalWrite(MOTOR, HIGH);
+#else
+  motor.write(MOTOR_SPEED);
+#endif
   Serial.println("Active");
   return STATE_ACTIVE;
 }
@@ -135,7 +149,11 @@ void setup() {
   pinMode(RGB_RED, OUTPUT);
   pinMode(RGB_GREEN, OUTPUT);
   pinMode(RGB_BLUE, OUTPUT);
+#ifndef MOTOR_IS_360_SERVO
   pinMode(MOTOR, OUTPUT);
+#else
+  motor.attach(MOTOR);
+#endif
 }
 
 /**

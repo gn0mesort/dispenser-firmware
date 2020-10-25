@@ -61,6 +61,6 @@
 /**
  * The duration in milliseconds that the motor should run for.
  */
-const unsigned long MOTOR_TIMEOUT = 300;
+const unsigned long MOTOR_TIMEOUT = 6000;
 
 #endif
